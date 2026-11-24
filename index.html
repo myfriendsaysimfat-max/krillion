@@ -493,13 +493,7 @@ async function submit(e) {
    acceptAnswer({answer:canonical,corrected:norm(canonical)!==norm(raw)},aiResult.rarityPercent/100,true);
    return;
   }
-  // AI can be cautious; preserve a clear exact match from the curated/Wikimedia data.
-  const local=resolve(raw,current.a);
-  if(local) {
-   setAIStatus("AI JUDGE: LOCAL DATABASE CONFIRMED","good");
-   acceptAnswer(local,rarity(local.answer,current.a),false);
-   return;
-  }
+  // Gemini is the final authority: local/Wikimedia matches never override an AI rejection.
   setAIStatus("AI JUDGE: ANSWER NOT ACCEPTED","warn");
   locked=false;
   $("answer").disabled=false;
@@ -513,15 +507,8 @@ async function submit(e) {
   return;
  }
 
- // If no AI key/function is configured or the network is unavailable, keep the
- // existing offline answer list and spelling correction working.
- const local=resolve(raw,current.a);
- if(local) {
-  setAIStatus("AI OFFLINE · LOCAL DATABASE ACCEPTED ANSWER","warn");
-  acceptAnswer(local,rarity(local.answer,current.a),false);
-  return;
- }
- setAIStatus("AI OFFLINE · LOCAL DATABASE DID NOT RECOGNIZE THAT","warn");
+ // Gemini is required to approve every answer. If unavailable, do not accept from the local list.
+ setAIStatus("AI OFFLINE · ANSWER NOT VERIFIED","warn");
  locked=false;
  $("answer").disabled=false;
  $("answerform").querySelector("button").disabled=false;
